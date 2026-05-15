@@ -7,13 +7,12 @@ target triple = "arm64-apple-macosx14.0.0"
 
 ; Function Attrs: mustprogress nofree norecurse nosync nounwind ssp willreturn memory(none) uwtable(sync)
 define i32 @compute(i32 noundef %0, i32 noundef %1) local_unnamed_addr #0 {
-  %3 = add nsw i32 %1, %0   // x -> %3
-  %4 = shl nsw i32 %3, 1    // y -> %4
-  %5 = sub nsw i32 %4, %0   // z -> %5
+  %3 = add nsw i32 %1, %0   ; x -> %3
+  %4 = shl nsw i32 %3, 1    ; y -> %4
+  %5 = sub nsw i32 %4, %0   ; z -> %5
   ret i32 %5
 }
 
-А куда здесь делся %2
 ; Function Attrs: nofree nounwind ssp uwtable(sync)
 define noundef i32 @main() local_unnamed_addr #1 {
   %1 = tail call i32 (ptr, ...) @printf(ptr noundef nonnull dereferenceable(1) @.str, i32 noundef 13)
