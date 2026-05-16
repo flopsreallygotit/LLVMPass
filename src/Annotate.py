@@ -31,7 +31,7 @@ def format_values(vals: list[int]) -> str:
     if not vals:
         return "values: (not executed)"
 
-    shown = vals[:SHOW_FIRST_N]
+    shown = vals
     rest = len(vals) - len(shown)
     text = "values: " + ", ".join(str(v) for v in shown)
     if rest > 0:
@@ -59,11 +59,11 @@ def annotate_line(line: str, values: dict[int, list[int]]) -> str:
 def main():
     values = read_log("runtime_log.txt")
 
-    with open("graph.dot") as f_in, open("graph_annotated.dot", "w") as f_out:
+    with open("dots/graph.dot") as f_in, open("dots/graph_annotated.dot", "w") as f_out:
         for line in f_in:
             f_out.write(annotate_line(line, values))
 
-    print(f"Written graph_annotated.dot ({sum(len(v) for v in values.values())} value records)")
+    print(f"Written dots/graph_annotated.dot ({sum(len(v) for v in values.values())} value records)")
 
 if __name__ == "__main__":
     main()
