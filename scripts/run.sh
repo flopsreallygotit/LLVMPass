@@ -8,7 +8,7 @@ cd build
 ninja
 cd ..
 
-clang -S -emit-llvm -O0 src/test.c -o lls/test.ll
+clang -S -emit-llvm -O0 tests/test.c -o lls/test.ll
 
 opt -load-pass-plugin=./build/lib/libMyPass.so \
     -passes="my-pass" \
@@ -19,7 +19,7 @@ clang -c src/Runtime.c -o build/obj/Runtime.o
 clang lls/test_inst.ll build/obj/Runtime.o -o build/bin/test_inst
 ./build/bin/test_inst
 
-python3 src/Annotate.py
+python3 scripts/Annotate.py
 
 dot -Tpng dots/graph.dot -o images/graph.png
 dot -Tpng dots/graph_annotated.dot -o images/graph_annotated.png

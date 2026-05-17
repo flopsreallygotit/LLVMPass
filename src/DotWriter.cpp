@@ -78,7 +78,7 @@ void DotWriter::WriteEdges(llvm::Module &Module, ValueIds &ids) {
                     if (Value == nullptr) continue;
 
                     if (llvm::isa<llvm::Instruction>(Value) ||
-                        llvm::isa<llvm::Argument>(Value)) {
+                            llvm::isa<llvm::Argument>(Value)) {
                         int src_id = ids.GetOrAssign(Value);
                         dot_ << "\tn" << src_id << " -> n" << dst_id << ";\n";
                     }

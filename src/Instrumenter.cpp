@@ -8,6 +8,8 @@
 #include <vector>
 // TODO type for bare 32 and 64
 
+static constexpr const char *kRuntimePrefix = "__mypass_";
+
 namespace mypass {
 Instrumenter::Instrumenter(llvm::Module &Module) : module_(Module), log_i32_(), log_i64_() {
     DeclareLogFunctions();
@@ -20,10 +22,10 @@ void Instrumenter::DeclareLogFunctions(void) {
     llvm::Type *i32_ty = llvm::Type::getInt32Ty(context);
     llvm::Type *i64_ty = llvm::Type::getInt64Ty(context);
 
-    log_i32_ = module_.getOrInsertFunction("__my_log_i32",
+    log_i32_ = module_.getOrInsertFunction("__mypass_log_i32",
         llvm::FunctionType::get(void_ty, {i32_ty, i32_ty}, false));
 
-    log_i64_ = module_.getOrInsertFunction("__my_log_i64",
+    log_i64_ = module_.getOrInsertFunction("__mypass_log_i64",
         llvm::FunctionType::get(void_ty, {i32_ty, i64_ty}, false));
 }
 
@@ -41,7 +43,7 @@ int Instrumenter::Instrument(ValueIds &ids) {
 
     for (llvm::Function &Function : module_) {
         if (Function.isDeclaration()) continue;
-        if (Function.getName().starts_with("__my_log_")) continue;
+        if (Function.getName().starts_with(kRuntimePrefix)) continue;
 
         for (llvm::BasicBlock &BasicBlock : Function) {
             for (llvm::Instruction &Instruction : BasicBlock) {
