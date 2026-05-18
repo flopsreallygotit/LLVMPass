@@ -2,7 +2,7 @@
 
 set -e
 
-mkdir -p build/obj lls dots images
+mkdir -p build/obj build/bin lls dots images
 
 cd build
 ninja

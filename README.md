@@ -39,18 +39,18 @@ Module -> Function -> BasicBlock -> Instruction
 
 Параллельно пасс модифицирует IR. Он:
  
-- Объявляет в модуле две внешние функции -- `__my_log_i32(i32, i32)` и `__my_log_i64(i32, i64)`. Эти функции потом подцепятся из `Runtime.c` на стадии линковки.
+- Объявляет в модуле две внешние функции -- `__mypass_log_i32(i32, i32)` и `__mypass_log_i64(i32, i64)`. Эти функции потом подцепятся из `Runtime.c` на стадии линковки.
 - Идёт по всем инструкциям и отбирает те, что подходят для инструментации.
 Подходящие -- это инструкции, которые:
 - - имеют ненулевой результат типа `i32` или `i64` (для других у нас нет log-функции);
 - - не являются терминаторами (`ret`, `br`, `switch` -- после терминатора в блоке не вставить);
 - - не являются `PHINode` (PHI должны идти в начале блока, и вставка вызова между ними сломает IR);
 - - не принадлежат самому runtime.
-После каждой такой инструкции через `IRBuilder` вставляется `call void @__my_log_iXX(i32 <id>, iXX %result)`.
+После каждой такой инструкции через `IRBuilder` вставляется `call void @__mypass_log_iXX(i32 <id>, iXX %result)`.
 
 ```llvm
   %9 = load i32, ptr %3, align 4
-  call void @__my_log_i32(i32 12, i32 %9)
+  call void @__mypass_log_i32(i32 12, i32 %9)
 ```
 
 ## Из чего строится граф
@@ -151,10 +151,10 @@ define i32 @Compute(i32 %0, i32 %1) {
  
 `Runtime.c` определяет четыре функции:
  
-- `__my_log_init` с атрибутом `constructor` -- вызывается автоматически **до** `main`. Открывает `runtime_log.txt` на запись.
-- `__my_log_finish` с атрибутом `destructor` -- вызывается **после** `main` или при `exit()`. Закрывает файл.
-- `__my_log_i32(int id, int32_t value)` и `__my_log_i64(int id, int64_t value)` -- пишут в лог строку `<id> <value>`.
-Каждый раз, когда выполнение в инструментированной программе доходит до вставленной инструкции `call void @__my_log_i32(i32 N, i32 %X)`, в файл записывается строка `N <значение_X_в_момент_выполнения>`.
+- `__mypass_log_init` с атрибутом `constructor` -- вызывается автоматически **до** `main`. Открывает `runtime_log.txt` на запись.
+- `__mypass_log_finish` с атрибутом `destructor` -- вызывается **после** `main` или при `exit()`. Закрывает файл.
+- `__mypass_log_i32(int id, int32_t value)` и `__mypass_log_i64(int id, int64_t value)` -- пишут в лог строку `<id> <value>`.
+Каждый раз, когда выполнение в инструментированной программе доходит до вставленной инструкции `call void @__mypass_log_i32(i32 N, i32 %X)`, в файл записывается строка `N <значение_X_в_момент_выполнения>`.
  
 Финальный `runtime_log.txt` -- это пары `(id, value)` ровно в том порядке, в каком выполнялись инструкции.
 
@@ -211,8 +211,72 @@ values: 7, 14, 21 ...
 
 ## Как запустить
  
-Требования: macOS или Linux, Homebrew LLVM (тестировалось на LLVM 22), graphviz, Python 3.
- 
+### Linux
+
+Тестировалось на Ubuntu 24.04 с LLVM 19 из официального репозитория `apt.llvm.org`. На других дистрибутивах команды установки пакетов будут отличаться, но шаги те же.
+
+#### 1. Установить базовые инструменты
+
+```bash
+sudo apt-get update
+sudo apt-get install -y \
+    wget gnupg ca-certificates \
+    cmake ninja-build git \
+    graphviz python3
+```
+
+#### 2. Установить LLVM 19 из apt.llvm.org
+
+В стандартных репозиториях Ubuntu LLVM часто старый или собран без нужных нам компонентов. Поэтому у меня получилось запустить, только подключив версию из официального репозитория:
+
+```bash
+sudo mkdir -p /etc/apt/keyrings
+wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key | \
+    sudo tee /etc/apt/keyrings/llvm.asc > /dev/null
+
+echo "deb [signed-by=/etc/apt/keyrings/llvm.asc] http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" | \
+    sudo tee /etc/apt/sources.list.d/llvm.list
+
+sudo apt-get update
+sudo apt-get install -y clang-19 llvm-19-dev
+```
+
+`noble` в URL — это кодовое имя Ubuntu 24.04. Для других версий поменяй:
+- Ubuntu 22.04 -> `jammy`
+- Ubuntu 20.04 -> `focal`
+- Debian 12 -> `bookworm`
+
+#### 3. Создать удобные симлинки (опционально, но рекомендуется)
+
+`run.sh` зовёт `clang`, `clang++`, `opt` без суффикса версии. Делаем симлинки:
+
+```bash
+sudo ln -sf /usr/bin/clang-19   /usr/bin/clang
+sudo ln -sf /usr/bin/clang++-19 /usr/bin/clang++
+sudo ln -sf /usr/bin/opt-19     /usr/bin/opt
+```
+
+Если не хочется трогать системные пути — можно вместо этого экспортировать `PATH` или поправить команды в `run.sh`.
+
+#### 4. Собрать плагин
+
+```bash
+cmake -G Ninja \
+    -DCMAKE_C_COMPILER=/usr/bin/clang-19 \
+    -DCMAKE_CXX_COMPILER=/usr/bin/clang++-19 \
+    -DLLVM_DIR=/usr/lib/llvm-19/lib/cmake/llvm \
+    -B build
+cmake --build build
+```
+
+После сборки `build/lib/libMyPass.so` должен существовать:
+
+```bash
+ls build/lib/
+```
+
+### MacOS
+
 ```bash
 brew install llvm graphviz cmake ninja
 export PATH="$(brew --prefix llvm)/bin:$PATH"
@@ -226,10 +290,15 @@ cmake -G Ninja \
   ..
 ninja
 cd ..
- 
-# полный конвейер
+```
+
+#### 5. Запустить
+
+```bash
 ./scripts/run.sh
 ```
+
+После прогона картинки появятся в `images/`, граф и логи в `dots/`.
  
 После прогона `./scripts/run.sh`:
 - `dots/graph.dot` -- структура графа

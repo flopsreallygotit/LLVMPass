@@ -1,12 +1,15 @@
 cmake_minimum_required(VERSION 3.20)
 
-execute_process(COMMAND brew --prefix llvm
-    OUTPUT_VARIABLE LLVM_BREW_PREFIX
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-)
+if(APPLE)
+    execute_process(COMMAND brew --prefix llvm
+        OUTPUT_VARIABLE LLVM_BREW_PREFIX
+        OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
 
-set(CMAKE_C_COMPILER "${LLVM_BREW_PREFIX}/bin/clang")
-set(CMAKE_CXX_COMPILER "${LLVM_BREW_PREFIX}/bin/clang++")
+    set(CMAKE_C_COMPILER "${LLVM_BREW_PREFIX}/bin/clang")
+    set(CMAKE_CXX_COMPILER "${LLVM_BREW_PREFIX}/bin/clang++")
+    set(LLVM_DIR "${LLVM_BREW_PREFIX}/lib/cmake/llvm")
+endif()
 
 project(MyPass)
 

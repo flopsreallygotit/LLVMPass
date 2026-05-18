@@ -11,7 +11,7 @@ int ValueIds::GetOrAssign(const llvm::Value *Value) {
     int id = next_id_;
     next_id_++;
     ids_[Value] = id;
-    
+
     return id;
 }
 
