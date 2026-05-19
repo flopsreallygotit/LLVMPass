@@ -10,7 +10,7 @@
 
 static constexpr const char *kRuntimePrefix = "__mypass_";
 
-namespace mypass {
+namespace mypass { // TODO[dkay]: not descriptive namespace's name
 Instrumenter::Instrumenter(llvm::Module &Module) : module_(Module), log_i32_(), log_i64_() {
     DeclareLogFunctions();
 }
@@ -43,11 +43,16 @@ int Instrumenter::Instrument(ValueIds &ids) {
 
     for (llvm::Function &Function : module_) {
         if (Function.isDeclaration()) continue;
-        if (Function.getName().starts_with(kRuntimePrefix)) continue; // FIXME[flops]: This check is extra. You can't reach your own function by design + target module doesn't contain your runtime funcs bodies (Runtime.c contains it), so declaration check is enough
+        // FIXME[flops]: This check is extra. You can't reach your own function by design + target module doesn't contain your runtime funcs bodies (Runtime.c contains it), so declaration check is enough
+        // TODO[dkay]: this is unneccessary since your functions are in rt module which is compiled without your pass and then just linked to target module
+        // in the target module your rt functions are just decls which are handled by the condition above
+        if (Function.getName().starts_with(kRuntimePrefix)) continue; 
 
         for (llvm::BasicBlock &BasicBlock : Function) {
             for (llvm::Instruction &Instruction : BasicBlock) {
                 if (ShouldInstrument(Instruction)) {
+                                                     // TODO[dkay]: why do we need two lopps, and extra space
+                                                     // instead of doing it in one loop?
                     targets.push_back(&Instruction); // ------| (1)
                 }                                    //       | FIXME[flops]: You don't need to do 2 for cycles and store target in array
             }                                        //       | You can already instrument func in (1) cycle                
@@ -61,7 +66,9 @@ int Instrumenter::Instrument(ValueIds &ids) {
 
         llvm::IRBuilder<> builder(next);
         llvm::Value *id_const = builder.getInt32(id);
-
+        
+        // TODO: and what if instruction has a different type?
+        // you should print every instruction as hex at least
         if (Instruction->getType()->isIntegerTy(32)) {
             builder.CreateCall(log_i32_, {id_const, Instruction});
         } else if (Instruction->getType()->isIntegerTy(64)) {

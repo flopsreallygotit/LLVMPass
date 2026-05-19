@@ -11,11 +11,13 @@ namespace mypass {
 DotWriter::DotWriter(const std::string &dot_path, const std::string &mapping_path) {
     dot_.open(dot_path);
     mapping_.open(mapping_path);
-    ready_ = dot_.is_open() && mapping_.is_open();
+    ready_ = dot_.is_open() && mapping_.is_open(); 
+    // FIXME[dkay]: not a great solution. it obligates class' user to manually check if its ready_
+    // Such a ctor may leave class inconsistent. I would suggest to throw / abort here
 }
 
 void DotWriter::Write(llvm::Module &Module, ValueIds &ids) {
-    if (!ready_) return;
+    if (!ready_) return; // TODO: It also not great to silently return in case of error
 
     WriteHeader();
     for (llvm::Function &Function : Module) {
@@ -35,11 +37,7 @@ void DotWriter::WriteHeader(void) {
 
 void DotWriter::WriteFunctionNodes(llvm::Function &Function, ValueIds &ids) {
     std::string function_name = Function.getName().str();
-
-    dot_ << "\tsubgraph cluster_" << function_name << " {\n";
-    dot_ << "\t\tlabel=\"" << EscapeForDot(function_name) << "\";\n";
-    dot_ << "\t\tstyle=dashed;\n";
-
+dot_ << "\tsubgraph cluster_" << function_name << " {\n"; dot_ << "\t\tlabel=\"" << EscapeForDot(function_name) << "\";\n"; dot_ << "\t\tstyle=dashed;\n";
     for (llvm::Argument &Argument : Function.args()) {
         int id = ids.GetOrAssign(&Argument);
         dot_ << "\t\tn" << id << " [label=\""

@@ -8,6 +8,9 @@
 #include <cassert>
 
 namespace mypass {
+
+// TODO: could be done with regexp, but its ok
+//
 std::string ShortLabel(const llvm::Value *Value) {
     if (Value == nullptr) {
         return "null";

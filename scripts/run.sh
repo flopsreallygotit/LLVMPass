@@ -2,6 +2,7 @@
 
 set -e
 
+# FIXME: Its better to separate building from running since I dont want to rebuild project each time
 mkdir -p build/obj build/bin lls dots images
 
 cd build
@@ -10,6 +11,10 @@ cd ..
 
 clang -S -emit-llvm -O0 tests/test.c -o lls/test.ll
 
+# FIXME: you could use clang to pass your plugin
+# FIXME: want to see multi-module tests
+# FIXME: want to see tests with recursion, loops
+# FIXME: .gitignore, .clang-format may be useful here
 opt -load-pass-plugin=./build/lib/libMyPass.so \
     -passes="my-pass" \
     -S lls/test.ll -o lls/test_inst.ll

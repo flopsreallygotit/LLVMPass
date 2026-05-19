@@ -8,6 +8,7 @@
 #include <string>
 
 namespace mypass {
+// TODO[dkay]: you likely want to mark this and other classes as final
 class DotWriter {
 public:
     DotWriter(const std::string &dot_path, const std::string &mapping_path); //FIXME[flops]: Use string_view there instead

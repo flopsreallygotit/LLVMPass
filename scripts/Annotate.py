@@ -58,7 +58,7 @@ def annotate_line(line: str, values: dict[int, list[int]]) -> str:
 
 
 def main():
-    values = read_log("runtime_log.txt")
+    values = read_log("runtime_log.txt") # FIXME: What if I have multi-module project?
 
     with open("dots/graph.dot") as f_in, open("dots/graph_annotated.dot", "w") as f_out:
         for line in f_in:
