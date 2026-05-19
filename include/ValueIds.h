@@ -10,8 +10,8 @@ class ValueIds {
 public:
     ValueIds() = default;
     int GetOrAssign(const llvm::Value *V);
-    int Size(void) const {
-        return next_id_;
+    int Size(void) const { // TODO[flops]: It's better to return ids_.size() there
+        return next_id_;   
     }
 
 private:

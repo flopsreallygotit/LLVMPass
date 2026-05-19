@@ -4,7 +4,7 @@ import re
 import sys
 from collections import defaultdict
 
-SHOW_FIRST_N = 3
+SHOW_FIRST_N = 3 # [flops]: extra variable
 
 def read_log(path: str) -> dict[int, list[int]]:
     values = defaultdict(list)
@@ -31,8 +31,8 @@ def format_values(vals: list[int]) -> str:
     if not vals:
         return "values: (not executed)"
 
-    shown = vals
-    rest = len(vals) - len(shown)
+    shown = vals                    
+    rest = len(vals) - len(shown) # FIXME[flops]: rest is always 0: rest = len(vals) - len(vals) = 0
     text = "values: " + ", ".join(str(v) for v in shown)
     if rest > 0:
         text += f" ... (+{rest} more)"
@@ -42,6 +42,7 @@ def format_values(vals: list[int]) -> str:
 
 NODE_RE = re.compile(r'^(\s*n(\d+)\s*\[label=")([^"]*)(".*)$')
 
+# FIXME[flops]: Use pygraphiz/networkx to parse dot files and generate images from it
 def annotate_line(line: str, values: dict[int, list[int]]) -> str:
     m = NODE_RE.match(line)
     if not m:

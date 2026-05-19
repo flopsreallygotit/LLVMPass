@@ -33,6 +33,8 @@ struct MyPass : public PassInfoMixin<MyPass> {
         int count = instrumenter.Instrument(ids);
         errs() << "Instrumented " << count << " instructions\n";
 
+        // TODO[flops]: What if count == 0?
+
         return PreservedAnalyses::none();
     }
 };

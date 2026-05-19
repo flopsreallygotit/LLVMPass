@@ -21,6 +21,7 @@ clang lls/test_inst.ll build/obj/Runtime.o -o build/bin/test_inst
 
 python3 scripts/Annotate.py
 
+# [flops]: This can be done more accurate via Python
 dot -Tpng dots/graph.dot -o images/graph.png
 dot -Tpng dots/graph_annotated.dot -o images/graph_annotated.png
 

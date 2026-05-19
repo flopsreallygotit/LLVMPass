@@ -10,7 +10,7 @@
 namespace mypass {
 class DotWriter {
 public:
-    DotWriter(const std::string &dot_path, const std::string &mapping_path);
+    DotWriter(const std::string &dot_path, const std::string &mapping_path); //FIXME[flops]: Use string_view there instead
 
     bool IsReady(void) const {
         return ready_;

@@ -7,6 +7,10 @@
 
 В зависимости от того, какие данные подаются на вход программе, итоговая картина получается разной -- отражается не только сама структура, но и проход исполнения.
 
+TODO[flops]: Good detailed doc. It will be useful if you add annotated graph image there
+
+FIXME[flops]: Don't forget to add .gitignore for `build/` dir e.t.c.
+
 ## Структура
 
 ## Входная точка

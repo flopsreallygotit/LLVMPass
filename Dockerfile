@@ -7,6 +7,12 @@ RUN apt-get update && apt-get install -y \
     libgraphviz-dev graphviz \
     && rm -rf /var/lib/apt/lists/*
 
+# [flops]: You can use complete LLVM install script there
+# RUN wget https://apt.llvm.org/llvm.sh && \
+    # chmod +x llvm.sh && \
+    # ./llvm.sh 19 all \
+    # rm llvm.sh
+
 RUN wget -qO- https://apt.llvm.org/llvm-snapshot.gpg.key \
         > /etc/apt/trusted.gpg.d/apt.llvm.org.asc && \
     echo "deb http://apt.llvm.org/noble/ llvm-toolchain-noble-19 main" \

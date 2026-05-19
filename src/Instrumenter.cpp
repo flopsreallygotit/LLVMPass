@@ -43,18 +43,18 @@ int Instrumenter::Instrument(ValueIds &ids) {
 
     for (llvm::Function &Function : module_) {
         if (Function.isDeclaration()) continue;
-        if (Function.getName().starts_with(kRuntimePrefix)) continue;
+        if (Function.getName().starts_with(kRuntimePrefix)) continue; // FIXME[flops]: This check is extra. You can't reach your own function by design + target module doesn't contain your runtime funcs bodies (Runtime.c contains it), so declaration check is enough
 
         for (llvm::BasicBlock &BasicBlock : Function) {
             for (llvm::Instruction &Instruction : BasicBlock) {
                 if (ShouldInstrument(Instruction)) {
-                    targets.push_back(&Instruction);
-                }
-            }
-        }
-    }
-
-    for (llvm::Instruction *Instruction : targets) {
+                    targets.push_back(&Instruction); // ------| (1)
+                }                                    //       | FIXME[flops]: You don't need to do 2 for cycles and store target in array
+            }                                        //       | You can already instrument func in (1) cycle                
+        }                                            //       |
+    }                                                //       | Instead of returning `targets.size()` at the end, you can count instrumented funcs 
+                                                     //       | and just return the counter
+    for (llvm::Instruction *Instruction : targets) { // <-----/ (2)
         int id = ids.GetOrAssign(Instruction);
         llvm::Instruction *next = Instruction->getNextNode();
         if (next == nullptr) continue;
